@@ -1,6 +1,5 @@
 import { Client, TextChannel, Message, ChannelType} from "discord.js";
 import { BotEvent} from "src/types";
-import config from "../config";
 
 const event : BotEvent = {
     name: "messageCreate",
@@ -9,7 +8,7 @@ const event : BotEvent = {
         if (!message.member || message.member.user.bot) return;
         //  check if message is send inside a server, else return
         if (!message.guild) return;
-        const prefix = config;
-        console.log(prefix);
+        const prefix = process.env.PREFIX!;
+        if (!message.content.startsWith(prefix)) return;
     }  
 }

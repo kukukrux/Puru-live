@@ -2,7 +2,6 @@
 
 import { Client, ClientOptions, GatewayIntentBits, Partials } from "discord.js";
 import dotenv from 'dotenv';
-import config from "./config";
 import { readdirSync } from "fs";
 import { join } from "path";
 
@@ -44,9 +43,7 @@ const client = new Client({
 const handlersDir = join(__dirname, "./handlers")
 readdirSync(handlersDir).forEach(handler => {
     require(`${handlersDir}/${handler}`)(client)
-})
-const prefix = config;
-console.log(prefix);
+})  
 
 
 // Login to Discord with your client's token
