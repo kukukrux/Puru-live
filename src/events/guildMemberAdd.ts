@@ -12,6 +12,8 @@ const event : BotEvent = {
 	once: true,
 	execute: async (member : GuildMember) => {
 		try {
+			const welcomeChannelGuildID: string = process.env.WELCOME_CHANNEL_GUILD_ID as string;
+			if (member.guild.id != welcomeChannelGuildID) return;
 			const welcomeChannelID: string = process.env.WELCOME_CHANNEL_ID as string;
 			const welcomeChannel: Channel = client.channels.cache.get(welcomeChannelID) as TextChannel;
 			const canvas = createCanvas(650, 240);
