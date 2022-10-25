@@ -1,6 +1,6 @@
 ## How to start
 
-Node Version: 16.17.1
+Node Version: 16.18.0
 
 1. Clone
 2. make sure yarn is installed
