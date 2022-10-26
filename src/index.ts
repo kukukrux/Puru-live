@@ -38,6 +38,7 @@ const client = new Client({
 console.log('Bot is starting... \n');
 client.slashCommands = new Collection<string, SlashCommand>();
 client.commands = new Collection<string, Command>();
+config();
 
 console.log('Checking environment variables...');
 [
@@ -55,7 +56,7 @@ console.log('Checking environment variables...');
 	}
 });
 console.log('No missing environmental variables.\n');
-config();
+
 
 console.log('Loading handler... \n');
 try {

@@ -47,7 +47,8 @@ const event : BotEvent = {
 
 
 			const welcomeMessage = new AttachmentBuilder(canvas.toBuffer(), { name: `welcome-${member.id}.png` });
-			welcomeChannel.send({ files: [welcomeMessage] });
+			await welcomeChannel.send('Welcome <@' + member.id + '>');
+			await welcomeChannel.send({ files: [welcomeMessage] });
 		}
 		catch (error) {
 			console.log('there was an Error executing the ' + event.name + ' Event\n' + error);
