@@ -6,10 +6,10 @@ Working on MongoDB implementation atm
 ## How to start
 
 1. Clone
-2. make sure yarn is installed
-3. `yarn install`
-4. Have ESLint installed or im gonna kill you
-5. add .env File with Token, Prefix and other stuff
+2. Make sure yarn is installed
+3. Have ESLint installed or im gonna kill you
+4. `yarn install`
+5. Add .env File with Token, Prefix and other stuff
 6. `yarn start`
 
 ## Style rules
