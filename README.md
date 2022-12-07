@@ -1,6 +1,8 @@
 ## How to start
 
-Node Version: 16.18.0
+Node Version: 16.18.0 or 18.x something idk anymore
+
+Working on MongoDB implementation atm
 
 1. Clone
 2. make sure yarn is installed
@@ -9,6 +11,11 @@ Node Version: 16.18.0
 5. add .env File with Token, Prefix and other stuff
 6. `yarn start`
 
+Style rules
+
+1. Abide the linter
+2. Commits must be keysmash
+3. Shizo rambling and east european languages are considered keysmash
 
 ## .env
 
