@@ -1,14 +1,22 @@
+## Welcome
+
+Node Version: 16.18.0 or 18.x something idk anymore
+Working on MongoDB implementation atm
+
 ## How to start
 
-Node Version: 16.18.0
-
 1. Clone
-2. make sure yarn is installed
-3. `yarn install`
-4. Have ESLint installed or im gonna kill you
-5. add .env File with Token, Prefix and other stuff
+2. Make sure yarn is installed
+3. Have ESLint installed or im gonna kill you
+4. `yarn install`
+5. Add .env File with Token, Prefix and other stuff
 6. `yarn start`
 
+## Style rules
+
+1. Abide the linter
+2. Commits must be keysmash
+3. Shizo rambling and east european languages are considered keysmash
 
 ## .env
 
