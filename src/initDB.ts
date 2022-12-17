@@ -1,10 +1,9 @@
-import { Client, Collection, GatewayIntentBits, Partials } from 'discord.js';
-import { Command, SlashCommand, Reaction } from './types';
-import { config } from 'dotenv';
-import { readdirSync } from 'fs';
-import { join } from 'path';
+import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import { connect } from 'mongoose';
-import { endHost, logStuff } from './functions';
+import { config } from 'dotenv';
+import GuildDB from './mongoDB/schema/Guild';
+import mongoose from 'mongoose';
+
 const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds,
@@ -35,20 +34,10 @@ const client = new Client({
 	],
 });
 
-client.slashCommands = new Collection<string, SlashCommand>();
-client.commands = new Collection<string, Command>();
-client.reactions = new Collection<string, Reaction>();
-config();
-
-async function main() {
+async function init() {
 	console.info('Checking environment variables...\n');
 	[
 		'TOKEN',
-		'PREFIX',
-		'GUILD_ID_TO_LOG',
-		'TEST_CHANNEL_ID',
-		'LOG_CHANNEL',
-		'BOT_LOG',
 		'MONGO_URI',
 		'MONGO_DATABASE_NAME',
 	].forEach((env) => {
@@ -57,38 +46,50 @@ async function main() {
 			process.exit(1);
 		}
 	});
+	config();
 	console.info('No missing environmental variables.\n');
-
-	console.info('Loading handlers... \n');
-	const handlersDir = join(__dirname, './handlers');
-	readdirSync(handlersDir).forEach(handler => {
-		require(`${handlersDir}/${handler}`)(client);
-	});
-	console.info('All Handler loaded.\n');
 
 	console.log('Logging into Discord...\n');
 	await client.login(process.env.TOKEN)
 		.then(() => {
-			logStuff('Discord Bot logged in.\n', client, 'info');
+			console.info('Discord Bot logged in.\nConnecting to Databse now.\n');
 		})
 		.catch(err => {
 			console.error('CRITICAL ERROR: Could not connect to Discord.\n' + err);
-			endHost(client);
+			client.destroy();
+			process.exit();
 		});
 	await connect(`${process.env.MONGO_URI}/${process.env.MONGO_DATABASE_NAME}`)
+		.then(() => {
+			console.info(
+				'Connected to Database.\n',
+				'Checking Bot Config Database entry',
+			);
+			const guildCollection = client.guilds.cache.map(i => i);
+			console.log('Collection: ' + guildCollection);
+			guildCollection.forEach(async guild => {
+				if (mongoose.connection.readyState === 0) throw new Error('Cannot get Database entry. Database not connected.');
+				const foundGuild = await GuildDB.findOne({ guildId: guild });
+				if (!foundGuild) {
+					console.log(`Trying to create a new Database entry for Server: ${guild.name}`);
+					const newGuild = new GuildDB({
+						guildId: guild.id,
+						guildName: guild.name,
+						options: {},
+						reactionRolesConfiguration: [{}],
+						joinedAt: 'init',
+					});
+					newGuild.save();
+					console.log(newGuild);
+					console.log(`Created new Database entry for Server: ${guild.name}`);
+				}
+			});
+		})
 		.catch(err => {
-			logStuff('CRITICAL ERROR: Could not connect to Database.\n' + err, client, 'error');
-			endHost(client);
+			console.error('CRITICAL ERROR: Could not connect to Database.\n' + err);
+			client.destroy();
+			process.exit();
 		});
 }
 
-console.info('Bot is starting... \n');
-main()
-	.then(() => {
-		logStuff('Process is up and running!\n', client, 'info');
-	});
-
-// process.on('SIGINT', endHost(client));
-// process.on('SIGTERM', endHost(client));
-
-// export default client;
+init().then(process.exit());

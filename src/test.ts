@@ -1,10 +1,9 @@
-import { Client, Collection, GatewayIntentBits, Partials } from 'discord.js';
-import { Command, SlashCommand, Reaction } from './types';
-import { config } from 'dotenv';
-import { readdirSync } from 'fs';
-import { join } from 'path';
+import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import { connect } from 'mongoose';
-import { endHost, logStuff } from './functions';
+import { config } from 'dotenv';
+import GuildDB from './mongoDB/schema/Guild';
+import mongoose from 'mongoose';
+
 const client = new Client({
 	intents: [
 		GatewayIntentBits.Guilds,
@@ -34,21 +33,12 @@ const client = new Client({
 		Partials.ThreadMember,
 	],
 });
-
-client.slashCommands = new Collection<string, SlashCommand>();
-client.commands = new Collection<string, Command>();
-client.reactions = new Collection<string, Reaction>();
 config();
 
-async function main() {
+async function init() {
 	console.info('Checking environment variables...\n');
 	[
 		'TOKEN',
-		'PREFIX',
-		'GUILD_ID_TO_LOG',
-		'TEST_CHANNEL_ID',
-		'LOG_CHANNEL',
-		'BOT_LOG',
 		'MONGO_URI',
 		'MONGO_DATABASE_NAME',
 	].forEach((env) => {
@@ -59,36 +49,30 @@ async function main() {
 	});
 	console.info('No missing environmental variables.\n');
 
-	console.info('Loading handlers... \n');
-	const handlersDir = join(__dirname, './handlers');
-	readdirSync(handlersDir).forEach(handler => {
-		require(`${handlersDir}/${handler}`)(client);
-	});
-	console.info('All Handler loaded.\n');
-
 	console.log('Logging into Discord...\n');
 	await client.login(process.env.TOKEN)
 		.then(() => {
-			logStuff('Discord Bot logged in.\n', client, 'info');
+			console.info('Discord Bot logged in.\nConnecting to Databse now.\n');
 		})
 		.catch(err => {
 			console.error('CRITICAL ERROR: Could not connect to Discord.\n' + err);
-			endHost(client);
+			client.destroy();
+			process.exit();
 		});
 	await connect(`${process.env.MONGO_URI}/${process.env.MONGO_DATABASE_NAME}`)
+		.then(async () => {
+			console.info('Connected to Database.\n');
+			const foundGuild = await GuildDB.findOne({ guildId: '551693351804731412' });
+			if (!foundGuild) return null;
+            foundGuild.reactionRolesConfiguration
+			foundGuild.options[option] = value;
+			foundGuild.save();
+		})
 		.catch(err => {
-			logStuff('CRITICAL ERROR: Could not connect to Database.\n' + err, client, 'error');
-			endHost(client);
+			console.error('CRITICAL ERROR: Could not connect to Database.\n' + err);
+			client.destroy();
+			process.exit();
 		});
 }
 
-console.info('Bot is starting... \n');
-main()
-	.then(() => {
-		logStuff('Process is up and running!\n', client, 'info');
-	});
-
-// process.on('SIGINT', endHost(client));
-// process.on('SIGTERM', endHost(client));
-
-// export default client;
+init().then(process.exit());

@@ -12,37 +12,37 @@ module.exports = (client : Client) => {
 	const slashCommandsDir = join(__dirname, '../slashCommands');
 	const commandsDir = join(__dirname, '../commands');
 
-	console.log('Loading slash commands folder...');
+	logStuff('Loading slash commands folder...', client, 'info');
 	readdirSync(slashCommandsDir).forEach(file => {
 		if (!file.endsWith('.ts')) return;
 		const command : SlashCommand = require(`${slashCommandsDir}/${file}`).default;
 		slashCommands.push(command.command);
 		client.slashCommands.set(command.command.name, command);
-		console.log(`Successfully loaded slash command "${command.command.name}".`);
+		logStuff(`Successfully loaded slash command "${command.command.name}".`, client, 'info');
 	});
-	console.log('Slash commands folder loaded\n');
+	logStuff('Slash commands folder loaded\n', client, 'info');
 
-	console.log('Loading commands folder...');
+	logStuff('Loading commands folder...', client, 'info');
 	readdirSync(commandsDir).forEach(file => {
 		if (!file.endsWith('.ts')) return;
 		const command : Command = require(`${commandsDir}/${file}`).default;
+		commands.push(command);
 		client.commands.set(command.name, command);
-		console.log(`Successfully loaded command "${command.name}".`);
+		logStuff(`Successfully loaded command "${command.name}".`, client, 'info');
 	});
-	console.log('Commands folder loaded\n');
+	logStuff('Commands folder loaded\n', client, 'info');
 
-	console.log('Updating Slash Commands...');
+	logStuff('Updating Slash Commands...', client, 'info');
 	const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
 	rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
 		body: slashCommands.map(command => command.toJSON()),
 	})
 		.then((data : any) => {
-			console.log(`Successfully loaded ${data.length} slash command(s)`);
-			console.log(`Successfully loaded ${commands.length} command(s)\n`);
+			logStuff(`Successfully loaded ${data.length} slash command(s)`, client, 'info');
+			logStuff(`Successfully loaded ${commands.length} command(s)\n`, client, 'info');
 		}).catch(error => {
-			console.log('There was an Error uploading the slash command(s)\n' + error);
-			logStuff(error);
+			logStuff('There was an Error uploading the slash command(s)\n' + error, client, 'info');
 		});
 };
 

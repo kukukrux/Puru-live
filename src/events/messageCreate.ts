@@ -1,11 +1,10 @@
-import { Message, TextChannel } from 'discord.js';
-import { BotEvent } from 'src/types';
-import client from '../index';
-import { getRandomLine, logStuff } from '../functions';
+import { Message, TextChannel, ChannelType } from 'discord.js';
+import { BotEvent } from '../types';
+import { logStuff, checkPermissions, sendTimedMessage, getGuildOption } from '../functions';
 
 const event : BotEvent = {
 	name: 'messageCreate',
-	execute: (message : Message) => {
+	execute: async (message : Message) => {
 		//  check if message is from a server member or not from bot, else return
 		if (message.author.bot) return;
 
@@ -13,29 +12,43 @@ const event : BotEvent = {
 		if (!message.guild) return;
 
 		const prefix = process.env.PREFIX;
+		const client = message.client;
 
 		try {
-			const guildIDToLog: string = process.env.GUILD_ID_TO_LOG as string;
-			const logTestChannelID: string = process.env.LOG_TEST_CHANNEL_ID as string;
-			const logChannelID: string = process.env.LOG_CHANNEL as string;
-			const logChannel: TextChannel = client.channels.cache.get(logChannelID) as TextChannel;
+			const toLog: boolean = await getGuildOption(message.guild, 'log');
+			const testChannelID: string = process.env.TEST_CHANNEL_ID as string;
 
-			if (message.guild.id == guildIDToLog || message.channel.id == logTestChannelID) {
-				console.log(`message registered in ${message.guild.name}`);
-				const messageChannel: TextChannel = client.channels.cache.get(message.guild.id) as TextChannel;
-				const msgLog = `[MESSAGE] ${message.guild.name}\n> Channel: <#${message.channel.id}> - ${messageChannel}\n> User: ${message.author.username}#${message.author.discriminator} - ${message.author.id}\n\n${message.content}`;
+			if (toLog || message.channel.id == testChannelID) {
+				const logChannel: TextChannel = client.channels.cache.get(process.env.LOG_CHANNEL as string) as TextChannel;
+
+				const msgLog = `
+				[MESSAGE] ${message.guild.name}
+				> Channel: <#${message.channel.id}> - ${message.channel}
+				> User: ${message.author.username}#${message.author.discriminator} - ID:${message.author.id}
+				> Content:
+				${message.content}`;
 				logChannel.send(msgLog);
-				console.log(msgLog);
 			}
 
 			if (message.content.startsWith(prefix)) {
-				const args = message.content.substring(prefix.length).split(' ');
-				let command = message.client.commands.get(args[0]);
+				if (message.channel.type !== ChannelType.GuildText) return;
 
-				if (!command) {
-					const commandFromAlias = message.client.commands.find((command) => command.aliases.includes(args[0]));
-					if (commandFromAlias) command = commandFromAlias;
-					else return;
+				const args = message.content.substring(prefix.length).split(' ');
+				const command = message.client.commands.get(args[0]);
+
+				if (!command) return;
+				if (!message.member) return;
+
+				const neededPermissions = checkPermissions(message.member, command.permissions);
+				if (neededPermissions !== null) {
+					return sendTimedMessage(
+						`
+					You don't have enough permissions to use this command. 
+					\n Needed permissions: ${neededPermissions.join(', ')}
+					`,
+						message.channel,
+						5000,
+					);
 				}
 
 				command.execute(message, args);
@@ -43,27 +56,19 @@ const event : BotEvent = {
 			}
 			else {
 
-				if (message.content.toLowerCase().includes('saul')) {
-					message.reply({ files: [{ attachment: 'res/img/saul.gif' }] });
-				}
+				message.client.reactions.forEach(reaction => {
+					const triggerWords: string[] = reaction.trigger;
+					triggerWords.forEach(word => {
+						if (message.content.includes(word)) {
+							reaction.execute(message);
+						}
+					});
+				});
 
-				if (message.content.toLowerCase().includes('puru')) {
-					message.react('<:blush:955914251447468032> ');
-				}
-
-				if (message.content.toLowerCase().includes('andre') || message.content.toLowerCase().includes('andré')) {
-					message.react('<:smoothbrain:1031934692406083624> ');
-				}
-
-				const quranTrigger: string[] = ['quran', 'mashallah', 'allah', 'wallah', 'bismillah'];
-				if (quranTrigger.some(element => message.content.includes(element))) {
-					message.reply(getRandomLine('res/text/quran.txt'));
-				}
 			}
 		}
 		catch (error) {
-			console.log('there was an Error executing the ' + event.name + ' Event\n' + error);
-			logStuff(error);
+			logStuff('there was an Error executing the ' + event.name + ' Event\n' + error, client, 'error');
 		}
 	},
 };

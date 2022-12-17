@@ -1,5 +1,6 @@
 /* eslint-disable no-inline-comments */
-import { ReactionRoleConfiguration } from 'discordjs-reaction-role';
+import { Client } from 'discord.js';
+import { ReactionRoleConfiguration, ReactionRole } from './module';
 
 
 const configuration: ReactionRoleConfiguration[] = [
@@ -35,10 +36,21 @@ const configuration: ReactionRoleConfiguration[] = [
 	},
 	{
 		messageId: '1027272157635543040',
-		reaction: '1027271318166585384', // :a:black_flame:
+		reaction: '1027271318166585384', // :a:bl	ack_flame:
 		roleId: '1027263639448723538',
 	},
 ];
 
-export default configuration;
-// const manager = new ReactionRole(client, configuration);
+/*
+const configuration: ReactionRoleConfiguration[] = [
+	{
+		messageId: '1047958690088624168',
+		reaction: '1044909465134182451', // :creature:
+		roleId: '774368542324817920', // vegan
+	},
+];
+*/
+
+module.exports = (client: Client) => {
+	return new ReactionRole(client, configuration);
+};

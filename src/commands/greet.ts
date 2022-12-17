@@ -10,12 +10,10 @@ const command : Command = {
 			message.channel.send(`Hello there ${toGreet ? toGreet.user.username : message.member?.user.username}!`);
 		}
 		catch (error) {
-			console.log('There was an Error executing the ' + command.name + ' Command\n' + error);
-			logStuff(error);
+			console.log();
+			logStuff('There was an Error executing the ' + command.name + ' Command\n' + error, message.client, 'error');
 		}
 	},
-	cooldown: 10,
-	aliases: ['sayhello'],
 	permissions: ['Administrator', PermissionFlagsBits.ManageEmojisAndStickers],
 };
 

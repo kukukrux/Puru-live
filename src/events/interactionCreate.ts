@@ -12,10 +12,8 @@ const event : BotEvent = {
 			command.execute(interaction);
 		}
 		catch (error) {
-			console.log('there was an Error executing the ' + event.name + ' Event\n' + error);
-			logStuff(error);
+			logStuff('there was an Error executing the ' + event.name + ' Event\n' + error, interaction.client, 'error');
 		}
-
 	},
 };
 

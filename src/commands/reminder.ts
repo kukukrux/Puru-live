@@ -96,12 +96,9 @@ const command : Command = {
 			}
 		}
 		catch (error) {
-			console.log('There was an Error executing the ' + command.name + ' Command\n' + error);
-			logStuff(error);
+			logStuff('There was an Error executing the ' + command.name + ' Command\n' + error, message.client, 'error');
 		}
 	},
-	cooldown: 10,
-	aliases: ['remindMe'],
 	permissions: ['Administrator', PermissionFlagsBits.ManageEmojisAndStickers],
 };
 
